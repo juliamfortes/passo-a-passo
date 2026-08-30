@@ -3,33 +3,33 @@ PRODUÇÃO
 source /usr/local/gromacs/bin/GMXRC
 
 #topologia
-gmx pdb2gmx -ignh -f crk12.pdb -o crk12_ff.pdb -p topol.top -water tip3p
+gmx pdb2gmx -ignh -f protein.pdb -o protein_ff.pdb -p topol.top -water tip3p
 --> passo a passo após esse comando:
 Abrir arquivo da proteina_ff
-Botar uma parte do arquivo do ligante (copiar a partir do ATOM) no arquivo da proteina_ff depois do termo TER
+Botar uma parte do arquivo do ligante (copiar a partir do ATOM) no arquivo da protein_ff depois do termo TER
 Abrir topol.top, tirar a parte de código, e incluir chain topologies, ajustando com meus arquivos
 Com o código retirado do topol.top, criar um arquivo de txt novo chamado topol_Protein_chain_X.itp, que é referente ao código [molecule type] e Include position restraint, 
 junto com o include correto, como por ex: Protein_chain_X_posre.itp (que antes era apenas posre.itp)
 
 #orient molecule(s) along their principal axes
-gmx editconf -f crk12_ff.pdb -princ -o crk12_princ.pdb <<EOF
+gmx editconf -f protein_ff.pdb -princ -o protein_princ.pdb <<EOF
 Protein
 EOF
 
 #caixa
-gmx editconf -f crk12_princ.pdb -o crk12-PBC.pdb -bt triclinic -c -d 1.0
+gmx editconf -f protein_princ.pdb -o protein-PBC.pdb -bt triclinic -c -d 1.0
 
 #solvente
-gmx solvate -cp crk12-PBC.pdb -cs spc216.gro -p topol.top -o crk12-b4ion.pdb
+gmx solvate -cp protein-PBC.pdb -cs spc216.gro -p topol.top -o protein-b4ion.pdb
 
 #neutralização
-gmx grompp -f em-sol-pme.mdp -c crk12-b4ion.pdb -p topol.top -o ion.tpr -r crk12-b4ion.pdb -maxwarn 10
-gmx genion -s ion.tpr -o crk12-b4em.pdb -neutral -conc 0.15 -p topol.top <<EOF
+gmx grompp -f em-sol-pme.mdp -c protein-b4ion.pdb -p topol.top -o ion.tpr -r protein-b4ion.pdb -maxwarn 10
+gmx genion -s ion.tpr -o protein-b4em.pdb -neutral -conc 0.15 -p topol.top <<EOF
 SOL
 EOF
 
 #minimização
-gmx grompp -f em-sol-pme.mdp -c crk12-b4em.pdb -p topol.top -o em-sol.tpr
+gmx grompp -f em-sol-pme.mdp -c protein-b4em.pdb -p topol.top -o em-sol.tpr
 gmx mdrun -v -deffnm em-sol -c em-sol.pdb
 
 #nvt
